@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 
 def init(q1, q2, XS, dx, jmax):
     x = np.linspace(XS, XS + dx * (jmax-1), jmax)
-    # q = np.array([float(q1) if i < 0.0 else float(q2) for i in x])
+    q = np.array([float(q1) if i < 0.5 else float(q2) for i in x])
     # for i in x:
-    q = 1.0*np.sin(2*np.pi*x)
+    # q = 1.0*np.sin(2*np.pi*x)
     return (x, q)
 
 def Godnov(alf, q, dt,dx, jmax, flag_periodic):
