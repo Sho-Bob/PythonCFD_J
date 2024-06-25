@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 
 def init(q1, q2, XS, dx, jmax):
     x = np.linspace(XS, XS + dx * (jmax-1), jmax)
-    q = np.array([float(q1) if i < 0.5 else float(q2) for i in x])
+    # q = np.array([float(q1) if i < 0.5 else float(q2) for i in x])
     # for i in x:
-    # q = 1.0*np.sin(2*np.pi*x)
+    q = 1.0*np.sin(2*np.pi*x)
     return (x, q)
 
 def Godnov(alf, q, dt,dx, jmax, flag_periodic):
@@ -57,25 +57,25 @@ def do_computing_LDU(x, q, c, dt, dx, jmax, nmax, ff, flag_p, interval=2, xlim=N
                 R[0] = (alf[jmax-1]-alf[0])/dx
 
             # 1st order
-            # for j in range(1, jmax - 1):
-            #     dq[j] = (-dt * R[j] + nu_p[j-1] * dq[j - 1] - (q_m[j]-qold[j])) / (1 + nu_a[j])
-            # dq[0] = (-dt*R[0]+nu_p[0]*dq[0]-(q_m[0]-qold[0]))/(1+nu_a[0])
+            for j in range(1, jmax - 1):
+                dq[j] = (-dt * R[j] + nu_p[j-1] * dq[j - 1] - (q_m[j]-qold[j])) / (1 + nu_a[j])
+            dq[0] = (-dt*R[0]+nu_p[0]*dq[0]-(q_m[0]-qold[0]))/(1+nu_a[0])
 
             # 2nd order
-            for j in range(1, jmax - 1):
-                dq[j] = (-dt * R[j] + 2.0*nu_p[j-1] * dq[j - 1]/3.0 - (3.0*q_m[j]-4.0*qold[j]+qold2[j])/3.0) / (1 + 2.0*nu_a[j]/3.0)
-            dq[0] = (-dt*R[0]+nu_p[0]*dq[0]-(q_m[0]-qold[0]))/(1+nu_a[0])
+            # for j in range(1, jmax - 1):
+            #     dq[j] = (-dt * 2.0*R[j]/3.0 + 2.0*nu_p[j-1] * dq[j - 1]/3.0 - (3.0*q_m[j]-4.0*qold[j]+qold2[j])/3.0) / (1 + 2.0*nu_a[j]/3.0)
+            # dq[0] = (-dt*2.0*R[0]/3.0+2.0*nu_p[0]*dq[0]/3.0-(3.0*q_m[0]-4.0*qold[0]+qold2[0])/3.0)/(1+2.0*nu_a[0]/3.0)
 
             if flag_p:
                 dq[0] = (-dt*R[0])/(1+nu_a[0])
 
             # 1st order
-            # for j in range(jmax - 2, -1, -1):
-            #     dq[j] = dq[j] - nu_n[j+1] * dq[j + 1] / (1 + nu_a[j])
+            for j in range(jmax - 2, -1, -1):
+                dq[j] = dq[j] - nu_n[j+1] * dq[j + 1] / (1 + nu_a[j])
             
             #2nd order
-            for j in range(jmax - 2, -1, -1):
-                dq[j] = dq[j] - 2.0*nu_n[j+1] * dq[j + 1]/3.0 / (1 + 2.0*nu_a[j]/3.0)
+            # for j in range(jmax - 2, -1, -1):
+            #     dq[j] = dq[j] - 2.0*nu_n[j+1] * dq[j + 1]/3.0 / (1 + 2.0*nu_a[j]/3.0)
 
             if flag_p:
                 dq[jmax-1] = dq[jmax-1] - nu_n[0]*dq[0]/(1+nu_a[jmax-1]) 
@@ -106,6 +106,7 @@ def main():
     dx = 0.01
     CFL = 1.0
     dt = CFL *dx/c
+    print("dt is: ", dt)
     flag_periodic = False
 
     jmax = 100
@@ -116,7 +117,7 @@ def main():
     q1 = 1
     q2 = 0
     x, q = init(q1, q2, XS, dx, jmax)
-    do_computing_LDU(x, q, c, dt, dx, jmax, nmax, Godnov, flag_periodic,interval=25, xlim=[-0.1, 1.1])
+    do_computing_LDU(x, q, c, dt, dx, jmax, nmax, Godnov, flag_periodic,interval=25, xlim=[-0.1, 1.5])
 
 if __name__ == "__main__":
     main()
