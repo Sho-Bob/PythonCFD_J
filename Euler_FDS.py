@@ -46,7 +46,7 @@ def calc_CFL(Q):
     return max(sp) * dtdx   
 
 def Roe_flux(QL, QR, E):
-    for j in range(jmax - 1):        
+    for j in range(jmax - 1):  
         rhoL, uL, pL = QL[j, 0], QL[j, 1], QL[j, 2]
         rhoR, uR, pR = QR[j + 1, 0], QR[j + 1, 1], QR[j + 1, 2]
         
@@ -88,7 +88,7 @@ def Roe_flux(QL, QR, E):
                          [1.0 - b1, b2 * uAVE, -b2],
                          [0.5 * (b1 - uAVE / cAVE), -0.5 * (b2 * uAVE - cAVE), 0.5 * b2]])
         
-        AQ = R @ Lambda @ Rinv @ dQ
+        AQ = R @ Lambda @ Rinv @ dQ # matrix multiplication
         
         EL = np.array([rhoL * uL, pL + rhouL * uL, (eL + pL) * uL])
         ER = np.array([rhoR * uR, pR + rhouR * uR, (eR + pR) * uR])
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     line, = ax.plot(x, results[0][:, 0], color='red', linewidth=1.5)
 
     ani = animation.FuncAnimation(
-        fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=200
+        fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=25
     )
 
     plt.show()
