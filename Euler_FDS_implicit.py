@@ -219,12 +219,14 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration):
                 # 1st sweep
                 for j in range(1, jmax-1):
                     dq[j] = (-(Q_m_cons[j] - Qold[j]) - dtdx * (E[j] - E[j-1]) + dtdx * np.dot(A_p[j-1], dq[j-1])) / (1.0 + dtdx * sigma[j])
-                dq[0] = 0.0#(-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
+                dq[0] = (-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
+                dq[-1] = (-(Q_m_cons[-1] - Qold[-1]) - dtdx * (E[-1] - E[-1]) + dtdx * np.dot(A_p[-1], dq[-1])) / (1.0 + dtdx * sigma[-1])
                 
                 # 2nd sweep
                 for j in range(jmax-2, 0, -1):
                     dq[j] = dq[j] - dtdx * np.dot(A_n[j+1], dq[j+1]) / (1.0 + dtdx * sigma[j])
-                dq[jmax-1] = 0.0#dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
+                dq[jmax-1] = dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
+                dq[0] = dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
                 
                 Q_m_cons[:] = Q_m_cons[:] + dq[:]
                 Q_m[:] = Q_m_cons[:]
@@ -235,8 +237,8 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration):
                     break
                 
             Qold[:] = Q_m_cons[:]
-            Qold[0] = Q[0]
-            Qold[-1] = Q[-1]
+            # Qold[0] = Q[0]
+            # Qold[-1] = Q[-1]
             Q[:] = Q_m_cons[:]
     
     return results
@@ -252,7 +254,7 @@ if __name__ == "__main__":
     order = 3
 
     kappa = 0
-    time_integration = 0
+    time_integration = 1
 
     Q = init()
     results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration)
