@@ -1,7 +1,7 @@
 # Added by Sho Wada
 
 ### Comment
-Boundary condition may be wrong. Gotta fix it. I hope someone can learn how to advance numerical solutions either explicitly or implicitly in an Euler system.
+I hope someone can learn how to advance numerical solutions either explicitly or implicitly in an Euler system.
 
 ## Sod Shock Tube Problem Solver
 

@@ -222,14 +222,14 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     # 1st sweep
                     for j in range(1, jmax-1):
                         dq[j] = (-(Q_m_cons[j] - Qold[j]) - dtdx * (E[j] - E[j-1]) + dtdx * np.dot(A_p[j-1], dq[j-1])) / (1.0 + dtdx * sigma[j])
-                    dq[0] = (-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
-                    dq[-1] = (-(Q_m_cons[-1] - Qold[-1]) - dtdx * (E[-1] - E[-1]) + dtdx * np.dot(A_p[-1], dq[-1])) / (1.0 + dtdx * sigma[-1])
+                    dq[0] = dq[1]#(-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
+                    dq[-1] = dq[-2]#(-(Q_m_cons[-1] - Qold[-1]) - dtdx * (E[-1] - E[-1]) + dtdx * np.dot(A_p[-1], dq[-1])) / (1.0 + dtdx * sigma[-1])
                     
                     # 2nd sweep
                     for j in range(jmax-2, 0, -1):
                         dq[j] = dq[j] - dtdx * np.dot(A_n[j+1], dq[j+1]) / (1.0 + dtdx * sigma[j])
-                    dq[jmax-1] = dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
-                    dq[0] = dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
+                    dq[jmax-1] = dq[-2] #dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
+                    dq[0] = dq[1] #dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
 
                     Q_m_cons[:] = Q_m_cons[:] + dq[:]
                     Q_m[:] = Q_m_cons[:]
@@ -249,11 +249,15 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     for j in range(1, jmax-1):
                         dq[j] = (-(3.0*Q_m_cons[j] - 4.0*Qold[j]+Qold2[j])/3.0 - 2.0*dtdx * (E[j] - E[j-1])/3.0 + 2.0*dtdx * np.dot(A_p[j-1], dq[j-1])/3.0) / (1.0 + 4.0*dtdx * sigma[j]/9.0)
                     # dq[0] = (-(3.0*Q_m_cons[0] - 4.0*Qold[0]+Qold2[j])/3.0 - 2.0*dtdx * (E[0] - E[0])/3.0 + 2.0*dtdx * np.dot(A_p[0], dq[0])/3.0) / (1.0 + 2.0*dtdx * sigma[0]/3.0)
+                    dq[0] = dq[1]
+                    dq[-1] = dq[-2]
                     # dq[-1] = (-(3.0*Q_m_cons[-1] - 4.0*Qold[-1]+Qold2[j])/3.0 - 2.0*dtdx * (E[-1] - E[-1])/3.0 + 2.0*dtdx * np.dot(A_p[-1], dq[-1])/3.0) / (1.0 + 2.0*dtdx * sigma[-1]/3.0)
                     
                     # 2nd sweep
                     for j in range(jmax-2, 0, -1):
                         dq[j] = dq[j] - 2.0*dtdx * np.dot(A_n[j+1], dq[j+1])/3.0 / (1.0 + 2.0*dtdx * sigma[j]/3.0)
+                    dq[0] = dq[1]
+                    dq[-1] = dq[-2]
                     # dq[jmax-1] = dq[jmax-1] - 2.0*dtdx * np.dot(A_n[jmax-1], dq[jmax-1])/3.0 / (1.0 + 2.0*dtdx * sigma[jmax-1]/3.0)
                     # dq[0] = dq[0] - 2.0*dtdx * np.dot(A_n[0], dq[0])/3.0 / (1.0 + 2.0*dtdx * sigma[0]/3.0)
                     Q_m_cons[:] = Q_m_cons[:] + dq[:]
@@ -285,7 +289,7 @@ if __name__ == "__main__":
     nmax = 100
     print_interval = 1
 
-    order = 3
+    order = 2
 
     kappa = 0
     time_integration = 1
@@ -309,6 +313,9 @@ if __name__ == "__main__":
 
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=10
+    # )
+    # ani = animation.FuncAnimation(
+    #     fig, update_plot, frames=results2, fargs=(x, line), blit=True, interval=10
     # )
     ax.legend(fontsize='small')
     plt.show()
