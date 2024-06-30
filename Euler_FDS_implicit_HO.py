@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import sys
 
 jmax = 101
-dt = 0.005
+dt = 0.002
 
 gamma = 1.4
 
@@ -291,20 +291,26 @@ if __name__ == "__main__":
     time_integration = 1
     time_order = 2
 
+    Q1 = init()
     Q = init()
+    Q2 = init()
+    results_exp = Roe_FDS(Q1, order, kappa, nmax, print_interval, 0, time_order)
     results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
+    results2 = Roe_FDS(Q2, order, kappa, nmax, print_interval, time_integration, 1)
 
     fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
     plt.rcParams["font.size"] = 22
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\rho$')
     ax.grid(color='black', linestyle='dotted', linewidth=0.5)
-    line, = ax.plot(x, results[70][:, 0], color='red', linewidth=1.5)
+    line, = ax.plot(x, results_exp[99][:, 0], color='black', linewidth=1.5,label='RK2nd')
+    line, = ax.plot(x, results[99][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
+    line, = ax.plot(x, results2[99][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
 
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=10
     # )
-
+    ax.legend(fontsize='small')
     plt.show()
                                   
                                   
