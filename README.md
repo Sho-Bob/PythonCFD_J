@@ -73,12 +73,12 @@
 
 - [Matplotlibによるグラフ描画](/docs/appendix-matplotlib.pdf)
 
-## 以下は和田による付け足し
+# 以下は和田による付け足し
 
 ### コメント
 境界条件をうまく入れれてないかも？
 
-# Sod Shock Tube Problem Solver
+## Sod Shock Tube Problem Solver
 
 This repository contains a 1-dimensional numerical solver for the Sod shock tube problem using various numerical schemes, including the Roe Flux Difference Splitting (Roe FDS) method with Runge-Kutta (RK) and Lower-Upper Symmetric Gauss-Seidel (LU-SGS) schemes.
 ![Sod Shock Tube Problem](image/Sod_time_integration_RoeFDS.png)
