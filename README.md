@@ -2,7 +2,7 @@
 
 ### Comment
 I hope someone can learn how to advance numerical solutions either explicitly or implicitly in an Euler system.
-Roe FDS scheme is not robust, so anyone can implement other numerical schemes to evaluate the upwind fluxes at each cell interfaces. The focus of this code is on the time integration scheme.
+Roe FDS scheme is not robust, so anyone can implement other numerical schemes to evaluate the upwind fluxes at cell interfaces. The focus of this code is on the time integration scheme.
 
 ## Sod Shock Tube Problem Solver
 
