@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import sys
 
 jmax = 101
-dt = 0.004
+dt = 0.005
 
 gamma = 1.4
 
@@ -172,7 +172,7 @@ def compute_jacobian(Q):
 
     return A, A_p, A_n, sigma
 
-def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration):
+def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
     E = np.zeros([jmax, 3])
     results = []
     
@@ -198,7 +198,7 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration):
             Q[:] = Qold[:]
     
     else:  # implicit
-        internal_itr = 30
+        internal_itr = 100
         for n in range(nmax):
             if n % print_interval == 0:
                 print(f'n = {n : 4d} : CFL = {calc_CFL(Q) : .4f}')
@@ -207,38 +207,72 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration):
             Qold = Q.copy()
             Q_m = Q.copy()
             Q_m_cons = Q.copy()
+            if(n==0):
+                Qold2 = Q.copy()
+            
             dq_max = 1.0
             dq = np.zeros([jmax, 3])
-            
-            for m in range(internal_itr):
-                QL, QR = MUSCL(Q_m, order, kappa)
-                Roe_flux(QL, QR, E)
-                
-                A, A_p, A_n, sigma = compute_jacobian(Q_m_cons)
-                
-                # 1st sweep
-                for j in range(1, jmax-1):
-                    dq[j] = (-(Q_m_cons[j] - Qold[j]) - dtdx * (E[j] - E[j-1]) + dtdx * np.dot(A_p[j-1], dq[j-1])) / (1.0 + dtdx * sigma[j])
-                dq[0] = (-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
-                dq[-1] = (-(Q_m_cons[-1] - Qold[-1]) - dtdx * (E[-1] - E[-1]) + dtdx * np.dot(A_p[-1], dq[-1])) / (1.0 + dtdx * sigma[-1])
-                
-                # 2nd sweep
-                for j in range(jmax-2, 0, -1):
-                    dq[j] = dq[j] - dtdx * np.dot(A_n[j+1], dq[j+1]) / (1.0 + dtdx * sigma[j])
-                dq[jmax-1] = dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
-                dq[0] = dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
-                
-                Q_m_cons[:] = Q_m_cons[:] + dq[:]
-                Q_m[:] = Q_m_cons[:]
-                
-                dq_max = np.max(dq)
-                if (dq_max < 1.e-5):
-                    print(f'Iteration {m}, dq_max: {dq_max}')
-                    break
-                
+            if(T_order == 1):
+                for m in range(internal_itr):
+                    QL, QR = MUSCL(Q_m, order, kappa)
+                    Roe_flux(QL, QR, E)
+                    
+                    A, A_p, A_n, sigma = compute_jacobian(Q_m_cons)
+                    
+                    # 1st sweep
+                    for j in range(1, jmax-1):
+                        dq[j] = (-(Q_m_cons[j] - Qold[j]) - dtdx * (E[j] - E[j-1]) + dtdx * np.dot(A_p[j-1], dq[j-1])) / (1.0 + dtdx * sigma[j])
+                    dq[0] = (-(Q_m_cons[0] - Qold[0]) - dtdx * (E[0] - E[0]) + dtdx * np.dot(A_p[0], dq[0])) / (1.0 + dtdx * sigma[0])
+                    dq[-1] = (-(Q_m_cons[-1] - Qold[-1]) - dtdx * (E[-1] - E[-1]) + dtdx * np.dot(A_p[-1], dq[-1])) / (1.0 + dtdx * sigma[-1])
+                    
+                    # 2nd sweep
+                    for j in range(jmax-2, 0, -1):
+                        dq[j] = dq[j] - dtdx * np.dot(A_n[j+1], dq[j+1]) / (1.0 + dtdx * sigma[j])
+                    dq[jmax-1] = dq[jmax-1] - dtdx * np.dot(A_n[jmax-1], dq[jmax-1]) / (1.0 + dtdx * sigma[jmax-1])
+                    dq[0] = dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
+
+                    Q_m_cons[:] = Q_m_cons[:] + dq[:]
+                    Q_m[:] = Q_m_cons[:]
+                    
+                    dq_max = np.max(dq)
+                    if (dq_max < 1.e-4):
+                        print(f'Iteration {m}, dq_max: {dq_max}')
+                        break
+            elif(T_order == 2):
+                for m in range(internal_itr):
+                    QL, QR = MUSCL(Q_m, order, kappa)
+                    Roe_flux(QL, QR, E)
+                    
+                    A, A_p, A_n, sigma = compute_jacobian(Q_m_cons)
+                    
+                    # 1st sweep
+                    for j in range(1, jmax-1):
+                        dq[j] = (-(3.0*Q_m_cons[j] - 4.0*Qold[j]+Qold2[j])/3.0 - 2.0*dtdx * (E[j] - E[j-1])/3.0 + 2.0*dtdx * np.dot(A_p[j-1], dq[j-1])/3.0) / (1.0 + 4.0*dtdx * sigma[j]/9.0)
+                    # dq[0] = (-(3.0*Q_m_cons[0] - 4.0*Qold[0]+Qold2[j])/3.0 - 2.0*dtdx * (E[0] - E[0])/3.0 + 2.0*dtdx * np.dot(A_p[0], dq[0])/3.0) / (1.0 + 2.0*dtdx * sigma[0]/3.0)
+                    # dq[-1] = (-(3.0*Q_m_cons[-1] - 4.0*Qold[-1]+Qold2[j])/3.0 - 2.0*dtdx * (E[-1] - E[-1])/3.0 + 2.0*dtdx * np.dot(A_p[-1], dq[-1])/3.0) / (1.0 + 2.0*dtdx * sigma[-1]/3.0)
+                    
+                    # 2nd sweep
+                    for j in range(jmax-2, 0, -1):
+                        dq[j] = dq[j] - 2.0*dtdx * np.dot(A_n[j+1], dq[j+1])/3.0 / (1.0 + 2.0*dtdx * sigma[j]/3.0)
+                    # dq[jmax-1] = dq[jmax-1] - 2.0*dtdx * np.dot(A_n[jmax-1], dq[jmax-1])/3.0 / (1.0 + 2.0*dtdx * sigma[jmax-1]/3.0)
+                    # dq[0] = dq[0] - 2.0*dtdx * np.dot(A_n[0], dq[0])/3.0 / (1.0 + 2.0*dtdx * sigma[0]/3.0)
+                    Q_m_cons[:] = Q_m_cons[:] + dq[:]
+                    Q_m[:] = Q_m_cons[:]
+                    
+                    dq_max = np.max(dq)
+                    if (dq_max < 1.e-5):
+                        print(f'Iteration {m}, dq_max: {dq_max}')
+                        break
+            # Neumann BC
+            Q_m_cons[0] = Q_m_cons[1]
+            Q_m_cons[-1] = Q_m_cons[-2]
+
+            Qold2[:] = Qold[:]
             Qold[:] = Q_m_cons[:]
             # Qold[0] = Q[0]
             # Qold[-1] = Q[-1]
+            # Qold2[0] = Q[0]
+            # Qold2[-1] = Q[-1]
             Q[:] = Q_m_cons[:]
     
     return results
@@ -255,16 +289,17 @@ if __name__ == "__main__":
 
     kappa = 0
     time_integration = 1
+    time_order = 2
 
     Q = init()
-    results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration)
+    results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
 
     fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
     plt.rcParams["font.size"] = 22
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\rho$')
     ax.grid(color='black', linestyle='dotted', linewidth=0.5)
-    line, = ax.plot(x, results[99][:, 0], color='red', linewidth=1.5)
+    line, = ax.plot(x, results[70][:, 0], color='red', linewidth=1.5)
 
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=10
