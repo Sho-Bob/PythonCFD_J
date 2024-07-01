@@ -247,7 +247,7 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     
                     # 1st sweep
                     for j in range(1, jmax-1):
-                        dq[j] = (-(3.0*Q_m_cons[j] - 4.0*Qold[j]+Qold2[j])/3.0 - 2.0*dtdx * (E[j] - E[j-1])/3.0 + 2.0*dtdx * np.dot(A_p[j-1], dq[j-1])/3.0) / (1.0 + 4.0*dtdx * sigma[j]/9.0)
+                        dq[j] = (-(3.0*Q_m_cons[j] - 4.0*Qold[j]+Qold2[j])/3.0 - 2.0*dtdx * (E[j] - E[j-1])/3.0 + 2.0*dtdx * np.dot(A_p[j-1], dq[j-1])/3.0) / (1.0 + 2.0*dtdx * sigma[j]/3.0)
                     # dq[0] = (-(3.0*Q_m_cons[0] - 4.0*Qold[0]+Qold2[j])/3.0 - 2.0*dtdx * (E[0] - E[0])/3.0 + 2.0*dtdx * np.dot(A_p[0], dq[0])/3.0) / (1.0 + 2.0*dtdx * sigma[0]/3.0)
                     dq[0] = dq[1]
                     dq[-1] = dq[-2]
