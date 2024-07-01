@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "pythoncfd-j"
+version = "0.1.0"
+description = "I hope someone can learn how to advance numerical solutions either explicitly or implicitly in an Euler system."
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^2.0.0"
+matplotlib = "^3.9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

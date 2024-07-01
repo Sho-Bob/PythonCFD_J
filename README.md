@@ -22,7 +22,7 @@ The solver initializes the computational domain and the initial conditions for d
 - Jacobian matrix computation for the LU-SGS scheme.
 - Support for both explicit and implicit time integration methods with first-order and second-order temporal accuracy.
 
-## Getting Started
+<!-- ## Getting Started
 
 ### Prerequisites
 
@@ -35,5 +35,19 @@ The solver initializes the computational domain and the initial conditions for d
 To run the solver and visualize the results, execute the following command:
 
 ```bash
-python Euler_FDS_implicit_HO.py
+python Euler_FDS_implicit_HO.py -->
+
+## 💿 Preparation
+
+Install [Poetry ](https://python-poetry.org/) and run the following command:
+
+```bash
+$ poetry install
+```
+
+## 🧪 Evaluation
+
+```bash
+$ poetry run python Euler_FDS_implicit_HO.py
+```
 
