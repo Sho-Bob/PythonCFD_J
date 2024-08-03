@@ -153,9 +153,9 @@ def compute_jacobian(Q):
         R = np.array([[1.0,1.0,1.0],
                      [velo_x-acoustic,        velo_x,        velo_x+acoustic],
                      [total_h-velo_x*acoustic, 0.5*velo_x**2, total_h+velo_x*acoustic]])
-        R_inv = np.array([[0.5*(b1+velo_x/acoustic), -0.5*(acoustic+b2*velo_x), 0.5*b2],
+        R_inv = np.array([[0.5*(b1+velo_x/acoustic), -0.5*(1/acoustic+b2*velo_x), 0.5*b2],
                          [1.0-b1,                     b2*velo_x,                  -b2],
-                         [0.5*(b1-velo_x/acoustic),  -0.5*(b2*velo_x-acoustic), 0.5*b2]])
+                         [0.5*(b1-velo_x/acoustic),  -0.5*(b2*velo_x-1/acoustic), 0.5*b2]])
         lambda_p = np.array([[0.5*(velo_x-acoustic+abs(velo_x-acoustic)), 0.0,                     0.0],
                              [0.0,                                        0.5*(velo_x+abs(velo_x)),0.0],
                              [0.0,                                        0.0                     ,0.5*(velo_x+acoustic+abs(velo_x+acoustic))]])
