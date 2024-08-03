@@ -83,8 +83,8 @@ def HLLC(QL, QR, E):
         f_L = np.array([rhouL, rhouL * uL + pL, (EL + pL) * uL])
         f_R = np.array([rhouR, rhouR * uR + pR, (ER + pR) * uR])
 
-        sL = uL - cL
-        sR = uR + cR
+        sL = min(uL-cL,uR-cR)
+        sR = max(uL+cL,uR+cR)
 
         # Calculate star region values
         c_L = rhoL * (sL - uL)
@@ -237,7 +237,7 @@ def compute_jacobian(Q):
                              [0,0,velo_x+acoustic]])
         A_p[j]   = R @ lambda_p @ R_inv
         A_n[j]   = R @ lambda_n @ R_inv
-        A[j]     = R @ lambda_t @ R_inv
+        A[j]     = A_p[j] + A_n[j]
         sigma[j] = abs(velo_x) + acoustic
 
     return A, A_p, A_n, sigma
@@ -257,8 +257,8 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
             coefs = [0.5, 1.0]
             for coef in coefs:
                 QL, QR = MUSCL(Qold, order, kappa)
-                # Roe_flux(QL, QR, E)
-                HLLC(QL, QR, E)
+                Roe_flux(QL, QR, E)
+                # HLLC(QL, QR, E)
                 
                 for j in range(1, jmax - 1):
                     Qold[j] = Q[j] - coef * dtdx * (E[j] - E[j-1])
@@ -269,7 +269,7 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
             Q[:] = Qold[:]
     
     else:  # implicit
-        internal_itr = 100
+        internal_itr = 30
         for n in range(nmax):
             if n % print_interval == 0:
                 print(f'n = {n : 4d} : CFL = {calc_CFL(Q) : .4f}')
@@ -304,18 +304,20 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     dq[0] = dq[1] #dq[0] - dtdx * np.dot(A_n[0], dq[0]) / (1.0 + dtdx * sigma[0])
 
                     Q_m_cons[:] = Q_m_cons[:] + dq[:]
+                    Q_m_cons[0] = Q_m_cons[1]
+                    Q_m_cons[-1] = Q_m_cons[-2]
                     Q_m[:] = Q_m_cons[:]
                     
                     dq_max = np.max(dq)
                 
-                    if (dq_max < 1.e-4):
+                    if (dq_max < 1.e-2):
                         print(f'Iteration {m}, dq_max: {dq_max}')
                         break
             elif(T_order == 2):
                 for m in range(internal_itr):
                     QL, QR = MUSCL(Q_m, order, kappa)
-                    # Roe_flux(QL, QR, E)
-                    HLLC(QL, QR, E)
+                    Roe_flux(QL, QR, E)
+                    # HLLC(QL, QR, E)
                     
                     A, A_p, A_n, sigma = compute_jacobian(Q_m_cons)
                     
@@ -335,6 +337,8 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     # dq[jmax-1] = dq[jmax-1] - 2.0*dtdx * np.dot(A_n[jmax-1], dq[jmax-1])/3.0 / (1.0 + 2.0*dtdx * sigma[jmax-1]/3.0)
                     # dq[0] = dq[0] - 2.0*dtdx * np.dot(A_n[0], dq[0])/3.0 / (1.0 + 2.0*dtdx * sigma[0]/3.0)
                     Q_m_cons[:] = Q_m_cons[:] + dq[:]
+                    Q_m_cons[0] = Q_m_cons[1]
+                    Q_m_cons[-1] = Q_m_cons[-2]
                     Q_m[:] = Q_m_cons[:]
                     
                     dq_max = np.max(dq)
@@ -356,23 +360,23 @@ def update_plot(frame, x, line):
     return line,
 
 if __name__ == "__main__":
-    nmax = 100
+    nmax = 20
     print_interval = 1
 
-    order = 2
+    order = 3
 
-    kappa = 0
+    kappa = 1/3
     time_integration = 1
-    time_order = 1
+    time_order = 2
 
     # Q1 = init_Sod()
-    # Q = init_Sod()
+    Q = init_Sod()
     Q2 = init_Sod()
     # Q1 = init_Shu_Osher()
     # Q = init_Shu_Osher()
     # Q2 = init_Shu_Osher()
     # results_exp = Roe_FDS(Q1, order, kappa, nmax, print_interval, 0, time_order)
-    # results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
+    results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
     results2 = Roe_FDS(Q2, order, kappa, nmax, print_interval, time_integration, 1)
 
     fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
@@ -381,11 +385,11 @@ if __name__ == "__main__":
     ax.set_ylabel(r'$\rho$')
     ax.grid(color='black', linestyle='dotted', linewidth=0.5)
     # line, = ax.plot(x, results_exp[99][:, 0], color='black', linewidth=1.5,label='RK2nd')
-    # line, = ax.plot(x, results[99][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
-    line, = ax.plot(x, results2[99][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
+    line, = ax.plot(x, results[19][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
+    line, = ax.plot(x, results2[19][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
 
     # ani = animation.FuncAnimation(
-    #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=10
+    #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=100
     # )
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results2, fargs=(x, line), blit=True, interval=10
