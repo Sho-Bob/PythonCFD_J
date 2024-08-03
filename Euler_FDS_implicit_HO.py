@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import sys
 
 jmax = 101
-dt = 0.01
+dt = 0.004
 
 gamma = 1.4
 
@@ -74,6 +74,9 @@ def HLLC(QL, QR, E):
         EL = pL / (gamma - 1.0) + 0.5 * rhoL * uL ** 2
         ER = pR / (gamma - 1.0) + 0.5 * rhoR * uR ** 2
 
+        UL_vec = np.array([rhoL,rhouL,EL])
+        UR_vec = np.array([rhoR,rhouR,ER])
+
         HL = (EL + pL) / rhoL
         HR = (ER + pR) / rhoR
         
@@ -82,38 +85,38 @@ def HLLC(QL, QR, E):
 
         f_L = np.array([rhouL, rhouL * uL + pL, (EL + pL) * uL])
         f_R = np.array([rhouR, rhouR * uR + pR, (ER + pR) * uR])
-
-        sL = min(uL-cL,uR-cR)
-        sR = max(uL+cL,uR+cR)
-
+        
+        sM = 0.5*(uL-uR) + (cL-cR)/(gamma-1)
+        rhoL_sta = rhoL+(uL-sM)*(rhoL+rhoR)/(cL+cR)
+        rhoR_sta = rhoR+(sM-uR)*(rhoL+rhoR)/(cL+cR)
+        p_star = pL + c_L * (u_star - uL)
+        aL_sta = np.sqrt(gamma*p_star/rhoL_sta)
+        aR_sta = np.sqrt(gamma*p_star/rhoR_sta)
+        sL = min(uL-cL,sM-aL_sta)
+        sR = max(uR+cR,sM+aR_sta)
+        
         # Calculate star region values
         c_L = rhoL * (sL - uL)
         c_R = rhoR * (sR - uR)
 
         u_star = (-c_L * uL + c_R * uR - (pR - pL)) / (-c_L + c_R)
-        p_star = pL + c_L * (u_star - uL)
-        rhoL_star = rhoL * (sL - uL) / (sL - u_star)
-        rhoR_star = rhoR * (sR - uR) / (sR - u_star)
-        EL_star = ((sL - uL) * EL - pL * uL + p_star * u_star) / (sL - u_star)
-        ER_star = ((sR - uR) * ER - pR * uR + p_star * u_star) / (sR - u_star)
 
+        u_rho = (np.sqrt(rhoL)*uL+np.sqrt(rhoR)*uR)/(np.sqrt(rhoL)+np.sqrt(rhoR))
+        
+        ULstar = np.array([rhoL*(sL-u_rho)/(sL-sM),
+                           rhoL*(sL-u_rho)/(sL-sM)*uL,
+                           rhoL*(sL-u_rho)/(sL-sM)*(EL/rhoL+(sM-u_rho)*(sM+pL/(rhoL*(sL-u_rho)))) ])
+        URstar = np.array([rhoR*(sR-u_rho)/(sR-sM),
+                           rhoR*(sR-u_rho)/(sR-sM)*uL,
+                           rhoR*(sR-u_rho)/(sR-sM)*(ER/rhoR+(sM-u_rho)*(sM+pR/(rhoR*(sR-u_rho)))) ])
         if sL > 0:
             E[j] = f_L
         elif sL <= 0 and u_star >= 0:
-            E[j] = np.array([
-                rhouL - sL * (rhoL_star * u_star - rhouL),
-                (rhouL * uL + pL - sL * (rhoL_star * u_star**2 + p_star - (rhouL * uL + pL))) / (1.0 - sL),
-                (EL + pL) * uL - sL * ((EL_star + p_star) * u_star - (EL + pL) * uL) / (1.0 - sL)
-            ])
+            E[j] = f_L + sL*(ULstar-UL_vec)
         elif u_star < 0 and sR >= 0:
-            E[j] = np.array([
-                rhouR - sR * (rhoR_star * u_star - rhouR),
-                (rhouR * uR + pR - sR * (rhoR_star * u_star**2 + p_star - (rhouR * uR + pR))) / (1.0 - sR),
-                (ER + pR) * uR - sR * ((ER_star + p_star) * u_star - (ER + pR) * uR) / (1.0 - sR)
-            ])
+            E[j] = f_R + sR*(URstar-UR_vec)
         elif sR < 0:
             E[j] = f_R
-
     return E
 
 def Roe_flux(QL, QR, E):
@@ -286,8 +289,8 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
             if(T_order == 1):
                 for m in range(internal_itr):
                     QL, QR = MUSCL(Q_m, order, kappa)
-                    Roe_flux(QL, QR, E)
-                    # HLLC(QL, QR, E)
+                    # Roe_flux(QL, QR, E)
+                    HLLC(QL, QR, E)
                     
                     A, A_p, A_n, sigma = compute_jacobian(Q_m_cons)
                     
@@ -360,24 +363,24 @@ def update_plot(frame, x, line):
     return line,
 
 if __name__ == "__main__":
-    nmax = 20
+    nmax = 100
     print_interval = 1
 
-    order = 3
+    order = 2
 
-    kappa = 1/3
+    kappa = 0
     time_integration = 1
     time_order = 2
 
     # Q1 = init_Sod()
     Q = init_Sod()
-    Q2 = init_Sod()
+    # Q2 = init_Sod()
     # Q1 = init_Shu_Osher()
     # Q = init_Shu_Osher()
     # Q2 = init_Shu_Osher()
     # results_exp = Roe_FDS(Q1, order, kappa, nmax, print_interval, 0, time_order)
     results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
-    results2 = Roe_FDS(Q2, order, kappa, nmax, print_interval, time_integration, 1)
+    # results2 = Roe_FDS(Q2, order, kappa, nmax, print_interval, time_integration, 1)
 
     fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
     plt.rcParams["font.size"] = 22
@@ -385,12 +388,12 @@ if __name__ == "__main__":
     ax.set_ylabel(r'$\rho$')
     ax.grid(color='black', linestyle='dotted', linewidth=0.5)
     # line, = ax.plot(x, results_exp[99][:, 0], color='black', linewidth=1.5,label='RK2nd')
-    line, = ax.plot(x, results[19][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
-    line, = ax.plot(x, results2[19][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
+    line, = ax.plot(x, results[99][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
+    # line, = ax.plot(x, results2[19][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
 
-    # ani = animation.FuncAnimation(
-    #     fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=100
-    # )
+    ani = animation.FuncAnimation(
+        fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=100
+    )
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results2, fargs=(x, line), blit=True, interval=10
     # )
