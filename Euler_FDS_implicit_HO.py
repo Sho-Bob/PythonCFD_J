@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
 
-jmax = 101
-dt = 0.002
+jmax = 401
+dt = 0.01
 
 gamma = 1.4
 
@@ -16,8 +16,8 @@ PE = 0.1
 RHOE = 0.1
 UE = 0.0
 
-xmin, xmid, xmax = 0.0, 0.5, 1.0 # Sod problem
-# xmin, xmid, xmax = -4.0, 0.0, 4.0 # Shu Osher problem
+# xmin, xmid, xmax = 0.0, 0.5, 1.0 # Sod problem
+xmin, xmid, xmax = -4.0, 0.0, 4.0 # Shu Osher problem
 x = np.linspace(xmin, xmax, jmax)
 
 dx = (xmax - xmin) / (jmax - 1)
@@ -43,13 +43,13 @@ def init_Shu_Osher():
     uL = 2.629369
     pL = 10.333
     pR=1.0
-    Q[x<-1.0,0] = rhoL 
-    Q[x<-1.0,1] = rhoL*uL
-    Q[x<-1.0,2] = (pL/(gamma-1.0)+ 0.5*rhoL*uL**2)
+    Q[x<-2.0,0] = rhoL 
+    Q[x<-2.0,1] = rhoL*uL
+    Q[x<-2.0,2] = (pL/(gamma-1.0)+ 0.5*rhoL*uL**2)
     # Q[x>=-4.0,0] = 1.0+0.2*np.sin(5.0*x) 
-    Q[x >= -1, 0] = 1.0 + 0.2 * np.sin(5.0 * x[x >= -1])
-    Q[x>=-1,1] = 0.0
-    Q[x>=-1.0,2] = pR/(gamma-1.0)
+    Q[x >= -2, 0] = 1.0 + 0.2 * np.sin(5.0 * x[x >= -2])
+    Q[x>=-2,1] = 0.0
+    Q[x>=-2.0,2] = pR/(gamma-1.0)
 
     return Q
 
@@ -368,13 +368,13 @@ if __name__ == "__main__":
 
     kappa = 0
     time_integration = 1
-    time_order = 2
+    time_order = 1
 
     # Q1 = init_Sod()
-    Q = init_Sod()
+    # Q = init_Sod()
     # Q2 = init_Sod()
     # Q1 = init_Shu_Osher()
-    # Q = init_Shu_Osher()
+    Q = init_Shu_Osher()
     # Q2 = init_Shu_Osher()
     # results_exp = Roe_FDS(Q1, order, kappa, nmax, print_interval, 0, time_order)
     results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     plt.rcParams["font.size"] = 22
     ax.set_xlabel('x')
     ax.set_ylabel(r'$\rho$')
-    ax.set_ylim(0, 1.1)
+    ax.set_ylim(0, 5)
     ax.grid(color='black', linestyle='dotted', linewidth=0.5)
     # line, = ax.plot(x, results_exp[99][:, 0], color='black', linewidth=1.5,label='RK2nd')
     line, = ax.plot(x, results[99][:, 0], color='red', linewidth=1.5,label='LU-SGS 2nd')
