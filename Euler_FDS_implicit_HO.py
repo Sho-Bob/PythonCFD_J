@@ -361,14 +361,14 @@ def update_plot(frame, x, line):
     return line,
 
 if __name__ == "__main__":
-    nmax = 100
+    nmax = 300
     print_interval = 1
 
     order = 2
 
     kappa = 0
     time_integration = 1
-    time_order = 1
+    time_order = 2
 
     # Q1 = init_Sod()
     # Q = init_Sod()
