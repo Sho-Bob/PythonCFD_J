@@ -17,7 +17,7 @@ RHOE = 0.1
 UE = 0.0
 
 # xmin, xmid, xmax = 0.0, 0.5, 1.0 # Sod problem
-xmin, xmid, xmax = -4.0, 0.0, 4.0 # Shu Osher problem
+xmin, xmid, xmax = -5.0, 0.0, 5.0 # Shu Osher problem
 x = np.linspace(xmin, xmax, jmax)
 
 dx = (xmax - xmin) / (jmax - 1)
@@ -43,13 +43,13 @@ def init_Shu_Osher():
     uL = 2.629369
     pL = 10.333
     pR=1.0
-    Q[x<-2.0,0] = rhoL 
-    Q[x<-2.0,1] = rhoL*uL
-    Q[x<-2.0,2] = (pL/(gamma-1.0)+ 0.5*rhoL*uL**2)
+    Q[x<-4.0,0] = rhoL 
+    Q[x<-4.0,1] = rhoL*uL
+    Q[x<-4.0,2] = (pL/(gamma-1.0)+ 0.5*rhoL*uL**2)
     # Q[x>=-4.0,0] = 1.0+0.2*np.sin(5.0*x) 
-    Q[x >= -2, 0] = 1.0 + 0.2 * np.sin(5.0 * x[x >= -2])
-    Q[x>=-2,1] = 0.0
-    Q[x>=-2.0,2] = pR/(gamma-1.0)
+    Q[x >= -4.0, 0] = 1.0 + 0.2 * np.sin(5.0 * x[x >= -4.0])
+    Q[x>=-4.0,1] = 0.0
+    Q[x>=-4.0,2] = pR/(gamma-1.0)
 
     return Q
 
@@ -243,7 +243,7 @@ def compute_jacobian(Q):
 
     return A, A_p, A_n, sigma
 
-def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
+def time_integration(Q, order, kappa, nmax, print_interval, time_integration, T_order):
     E = np.zeros([jmax, 3])
     results = []
     
@@ -343,7 +343,7 @@ def Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, T_order):
                     Q_m[:] = Q_m_cons[:]
                     
                     dq_max = np.max(dq)
-                    if (dq_max < 1.e-5):
+                    if (dq_max < 1.e-2):
                         print(f'Iteration {m}, dq_max: {dq_max}')
                         break
             # Neumann BC
@@ -361,13 +361,13 @@ def update_plot(frame, x, line):
     return line,
 
 if __name__ == "__main__":
-    nmax = 300
+    nmax = 200
     print_interval = 1
 
     order = 2
 
     kappa = 0
-    time_integration = 1
+    time_method = 1
     time_order = 2
 
     # Q1 = init_Sod()
@@ -376,9 +376,9 @@ if __name__ == "__main__":
     # Q1 = init_Shu_Osher()
     Q = init_Shu_Osher()
     # Q2 = init_Shu_Osher()
-    # results_exp = Roe_FDS(Q1, order, kappa, nmax, print_interval, 0, time_order)
-    results = Roe_FDS(Q, order, kappa, nmax, print_interval, time_integration, time_order)
-    # results2 = Roe_FDS(Q2, order, kappa, nmax, print_interval, time_integration, 1)
+    # results_exp = time_integration(Q1, order, kappa, nmax, print_interval, 0, time_order)
+    results = time_integration(Q, order, kappa, nmax, print_interval, time_method, time_order)
+    # results2 = time_integration(Q2, order, kappa, nmax, print_interval, time_integration, 1)
 
     fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
     plt.rcParams["font.size"] = 22
@@ -391,12 +391,13 @@ if __name__ == "__main__":
     # line, = ax.plot(x, results2[19][:, 0], color='blue', linewidth=1.5,label = 'LU-SGS 1st')
 
     ani = animation.FuncAnimation(
-        fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=100
+        fig, update_plot, frames=results, fargs=(x, line), blit=True, interval=40
     )
     # ani = animation.FuncAnimation(
     #     fig, update_plot, frames=results2, fargs=(x, line), blit=True, interval=10
     # )
     ax.legend(fontsize='small')
+    ani.save('animation.gif', writer='ffmpeg', fps=20)
     plt.show()
                                   
                                   
