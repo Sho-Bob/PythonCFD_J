@@ -7,8 +7,10 @@ Roe FDS scheme is not robust, so anyone can implement other numerical schemes to
 ## Sod Shock Tube Problem Solver
 
 This repository contains a 1-dimensional numerical solver for the Sod shock tube problem and Shu Osher problem using various numerical schemes, including the Roe Flux Difference Splitting (Roe FDS)  method + HLLC with Runge-Kutta (RK) and Lower-Upper Symmetric Gauss-Seidel (LU-SGS) schemes. You'll get the following result.
-<img src="https://github.com/Sho-Bob/PythonCFD_J/tree/package/image/Sod_time_integration_RoeFDS.png" width = "500">
-<img src="https://github.com/Sho-Bob/PythonCFD_J/tree/package/image/animation.gif" width ="500">
+<!-- <img src="https://github.com/Sho-Bob/PythonCFD_J/tree/package/image/Sod_time_integration_RoeFDS.png" width = "500">
+<img src="https://github.com/Sho-Bob/PythonCFD_J/tree/package/image/animation.gif" width ="500"> -->
+![Sod Shock Tube Problem](image/Sod_time_integration_RoeFDS.png)
+![SshuOsher Problem](image/animation.gif)
 
 ## Overview
 
